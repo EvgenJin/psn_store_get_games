@@ -8,7 +8,7 @@ const fetch = require('node-fetch'),
   function getGame(querry) {  
     fetch('https://store.playstation.com/chihiro-api/bucket-search/RU/ru/999/'+querry+'?size=10', {
         method: "GET",
-        agent:new HttpsProxyAgent('http://proxy.gpb.ural.ru:3128'),
+        agent:new HttpsProxyAgent('http://proxy.url.ru:port'),
         headers : {
             "Content-Type": "application/json"
         }
