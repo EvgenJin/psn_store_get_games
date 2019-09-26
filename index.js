@@ -1,14 +1,13 @@
-const fetch = require('node-fetch'),
-      HttpsProxyAgent = require('https-proxy-agent');
-    
-    let games_arr = []
-    let types = ['Комплект','Игра PSN']
-    
+const fetch = require('node-fetch'),HttpsProxyAgent = require('https-proxy-agent');
+  let games_arr = []
+  let types = ['Комплект','Игра PSN']
 
-  function getGame(querry) {  
+  getGame('Division 2')
+
+  function getGame(querry) {
     fetch('https://store.playstation.com/chihiro-api/bucket-search/RU/ru/999/'+querry+'?size=10', {
         method: "GET",
-        agent:new HttpsProxyAgent('http://proxy.url.ru:port'),
+        agent:new HttpsProxyAgent('http://proxy.url.ru:3128'),
         headers : {
             "Content-Type": "application/json"
         }
@@ -16,19 +15,32 @@ const fetch = require('node-fetch'),
     .then(res => res.json())
     .then(res => {
       res.categories.games.links.forEach(element => {
-       let item = {}
        if (element.top_category == 'downloadable_game' && types.includes(element.game_contentType)) {
-          // console.log(element)         
-          if(element.release_date) {item.release_date = element.release_date}
-          if(element.name) {item.name = element.name}
-          if(element.default_sku) {item.price = element.default_sku.price/100}
-          games_arr.push(item)
+          let disc = getDiscount(element.url)
+          let discount = {}
+          disc.then(res => res.json()).then(res => {
+            if (element.name) {discount.name = element.name}
+            if (element.release_date) {discount.release_date = element.release_date}
+            if (element.default_sku) {discount.regular_price = element.default_sku.price/100}
+            if (res.default_sku.rewards[0].price) {discount.sale_price = res.default_sku.rewards[0].price/100}
+            if (res.default_sku.rewards[0].start_date) {discount.sale_start_date = res.default_sku.rewards[0].start_date}
+            if (res.default_sku.rewards[0].end_date) {discount.sale_end_date = res.default_sku.rewards[0].end_date}                         
+          })
+          .then(res => console.log(discount))
        }
       });
     })
-    .then(res => console.log(games_arr))
+    // .then(res => console.log(games_arr))
   }
 
-  getGame('Blair witch')
-
-//'https://store.playstation.com/chihiro-api/bucket-search/RU/ru/999/metro%20exodus?size=10'
+  function getDiscount(url) {
+    return fetch(url,{
+      method: "GET",
+      agent:new HttpsProxyAgent('http://proxy.url.ru:3128'),
+      headers : {
+          "Content-Type": "application/json"
+      }      
+    })
+    let j = response.json();
+    return j;
+  }
